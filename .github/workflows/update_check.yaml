@@ -1,0 +1,50 @@
+name: Update Check Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      check_run_name:
+        description: 'Name of the check run to mark as success'
+        required: true
+        type: string
+      commit_sha:
+        description: 'Commit SHA where the check run exists'
+        required: true
+        type: string
+
+jobs:
+  update-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get check run ID
+        id: get_check_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching check run for commit SHA: ${{ github.event.inputs.commit_sha }}"
+
+          CHECK_RUN_ID=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/commits/${{ github.event.inputs.commit_sha }}/check-runs \
+            --jq '.check_runs[] | select(.name == "${{ github.event.inputs.check_run_name }}") | .id')
+
+          if [ -z "$CHECK_RUN_ID" ]; then
+            echo "❌ Check run '${{ github.event.inputs.check_run_name }}' not found for commit ${{ github.event.inputs.commit_sha }}"
+            exit 1
+          fi
+
+          echo "✅ Found Check Run ID: $CHECK_RUN_ID"
+          echo "check_run_id=$CHECK_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Mark check run as success
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/check-runs/${{ steps.get_check_run.outputs.check_run_id }} \
+            -f status=completed \
+            -f conclusion=success
+
+          echo "✅ Check run '${{ github.event.inputs.check_run_name }}' marked as success."
