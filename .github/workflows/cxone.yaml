@@ -25,5 +25,5 @@ jobs:
           cx_tenant: ${{ secrets.TENANT }}
           cx_client_id: ${{ secrets.CX_CLIENT_ID }}
           cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
-          additional_params: "--threshold \"sast-high=10; sast-medium=20; sca-critical=10; containers-high=5\""
+          additional_params: "--sast-incremental=true --threshold \"sast-high=10; sast-medium=20; sca-critical=10; containers-high=5\""
           source_dir: "."  # Change this to your subdirectory if needed
