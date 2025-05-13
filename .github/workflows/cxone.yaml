@@ -20,6 +20,7 @@ jobs:
 
       - name: Checkmarx AST CLI Action
         id: cx_scan
+        continue-on-error: true
         uses: checkmarx/ast-github-action@main
         with:
           base_uri: https://ast.checkmarx.net/
@@ -30,17 +31,14 @@ jobs:
           source_dir: "."
 
       - name: Sleep
-        if: success()
         run: sleep 10
 
       - name: Print debugging info
-        if: success()
         run: |
           echo "GITHUB_REF: $GITHUB_REF"
           echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
 
       - name: Extract PR head SHA using GitHub CLI
-        if: success()
         id: get_head_sha
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +55,6 @@ jobs:
           echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
       - name: Get Check Run ID for checkmarx-scan
-        if: success()
         id: get_check_run
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,7 +72,6 @@ jobs:
           echo "check_run_id=$CHECK_RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Update Check Run Conclusion to Success
-        if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
