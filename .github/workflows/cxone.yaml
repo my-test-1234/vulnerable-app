@@ -19,6 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkmarx AST CLI Action
+        id: cx_scan
         uses: checkmarx/ast-github-action@main
         with:
           base_uri: https://ast.checkmarx.net/
@@ -26,22 +27,24 @@ jobs:
           cx_client_id: ${{ secrets.CX_CLIENT_ID }}
           cx_client_secret: ${{ secrets.CX_CLIENT_SECRET }}
           additional_params: "--sast-incremental=true --threshold \"sast-high=10; sast-medium=20; sca-critical=10; containers-high=5\""
-          source_dir: "."  # Change this to your subdirectory if needed
+          source_dir: "."
 
-      - name: sleep
+      - name: Sleep
+        if: success()
         run: sleep 10
 
       - name: Print debugging info
+        if: success()
         run: |
           echo "GITHUB_REF: $GITHUB_REF"
           echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
 
       - name: Extract PR head SHA using GitHub CLI
+        if: success()
         id: get_head_sha
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Extract PR number based on current branch
           PR_NUMBER=$(gh pr list --head "${GITHUB_REF##refs/heads/}" --state open --json number -q '.[0].number')
 
           if [ -z "$PR_NUMBER" ]; then
@@ -54,6 +57,7 @@ jobs:
           echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
       - name: Get Check Run ID for checkmarx-scan
+        if: success()
         id: get_check_run
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,6 +75,7 @@ jobs:
           echo "check_run_id=$CHECK_RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Update Check Run Conclusion to Success
+        if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
