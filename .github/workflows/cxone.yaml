@@ -38,46 +38,46 @@ jobs:
           echo "GITHUB_REF: $GITHUB_REF"
           echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
 
-      - name: Extract PR head SHA using GitHub CLI
-        id: get_head_sha
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER=$(gh pr list --head "${GITHUB_REF##refs/heads/}" --state open --json number -q '.[0].number')
+      # - name: Extract PR head SHA using GitHub CLI
+      #   id: get_head_sha
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     PR_NUMBER=$(gh pr list --head "${GITHUB_REF##refs/heads/}" --state open --json number -q '.[0].number')
 
-          if [ -z "$PR_NUMBER" ]; then
-            echo "❌ Could not find a matching pull request."
-            exit 1
-          fi
+      #     if [ -z "$PR_NUMBER" ]; then
+      #       echo "❌ Could not find a matching pull request."
+      #       exit 1
+      #     fi
 
-          HEAD_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)
-          echo "✅ PR Head SHA: $HEAD_SHA"
-          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
+      #     HEAD_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)
+      #     echo "✅ PR Head SHA: $HEAD_SHA"
+      #     echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
 
-      - name: Get Check Run ID for checkmarx-scan
-        id: get_check_run
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          CHECK_RUN_ID=$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/commits/${{ steps.get_head_sha.outputs.head_sha }}/check-runs \
-            --jq '.check_runs[] | select(.name == "checkmarx-scan") | .id')
+      # - name: Get Check Run ID for checkmarx-scan
+      #   id: get_check_run
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     CHECK_RUN_ID=$(gh api \
+      #       -H "Accept: application/vnd.github+json" \
+      #       /repos/${{ github.repository }}/commits/${{ steps.get_head_sha.outputs.head_sha }}/check-runs \
+      #       --jq '.check_runs[] | select(.name == "checkmarx-scan") | .id')
 
-          if [ -z "$CHECK_RUN_ID" ]; then
-            echo "❌ Check run 'checkmarx-scan' not found."
-            exit 1
-          fi
+      #     if [ -z "$CHECK_RUN_ID" ]; then
+      #       echo "❌ Check run 'checkmarx-scan' not found."
+      #       exit 1
+      #     fi
 
-          echo "check_run_id=$CHECK_RUN_ID" >> $GITHUB_OUTPUT
+      #     echo "check_run_id=$CHECK_RUN_ID" >> $GITHUB_OUTPUT
 
-      - name: Update Check Run Conclusion to Success
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/check-runs/${{ steps.get_check_run.outputs.check_run_id }} \
-            -f status="completed" \
-            -f conclusion="success"
+      # - name: Update Check Run Conclusion to Success
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     gh api \
+      #       --method PATCH \
+      #       -H "Accept: application/vnd.github+json" \
+      #       /repos/${{ github.repository }}/check-runs/${{ steps.get_check_run.outputs.check_run_id }} \
+      #       -f status="completed" \
+      #       -f conclusion="success"
