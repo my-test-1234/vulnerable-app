@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.github/workflows/cxone.yaml'
+      - '.github/workflows/*'
   pull_request:
     branches:
       - main
